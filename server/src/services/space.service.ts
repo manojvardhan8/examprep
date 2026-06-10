@@ -57,7 +57,7 @@ export class SpaceService {
     // CASCADE DELETE: Import necessary models
     const Topic = (await import('@/models/Topic.ts')).default;
     const ContentBlock = (await import('@/models/ContentBlock.ts')).default;
-    const Anki = (await import('@/models/Anki.ts')).default;
+    const Anki = (await import('@/models/SpacedRepetition.ts')).default;
 
     // Find all subjects in this space
     const subjects = await Subject.find({ spaceId: spaceId });

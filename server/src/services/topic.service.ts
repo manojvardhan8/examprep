@@ -1,7 +1,7 @@
 import Topic, { type ITopic } from '@/models/Topic.ts';
 import Subject from '@/models/Subject.ts';
 import ContentBlock from '@/models/ContentBlock.ts';
-import Anki from '@/models/Anki.ts';
+import Anki from '@/models/SpacedRepetition.ts';
 import { SubjectService } from '@/services/subject.service.ts';
 import { Types } from 'mongoose';
 import { generateIconForSubject } from '@/utils/common.ts';

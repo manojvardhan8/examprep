@@ -6,7 +6,7 @@ import Space from '@/models/Space.ts';
 import Subject from '@/models/Subject.ts';
 import Topic from '@/models/Topic.ts';
 import ContentBlock, { ContentBlockType } from '@/models/ContentBlock.ts';
-import SpacedRepetition from '@/models/Anki.ts';
+import SpacedRepetition from '@/models/SpacedRepetition.ts';
 
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
@@ -138,8 +138,10 @@ const seedDashboardData = async () => {
                         // spaceId: space._id, // Not in schema
                         // box: 1, // Not in schema
                         nextReviewAt: reviewDate,
-                        intervalDays: 1,
-                        easeFactor: 2.5
+                        state: 'review',
+                        stability: 1,
+                        difficulty: 5,
+                        reps: 1
                     });
                 }
             }

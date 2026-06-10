@@ -241,10 +241,10 @@ export default function SubjectLibrary() {
                         className="h-8 px-4 rounded-full bg-green-500 hover:bg-green-600 text-white shadow-sm font-semibold border-none transition-all transform hover:scale-105 active:scale-95"
                         onClick={(e) => {
                           e.stopPropagation();
-                          navigate(`/recall/subject/${subject._id}`);
+                          navigate(`/spaced-repetition/subject/${subject._id}`);
                         }}
                       >
-                        RECALL
+                        Review
                       </Button>
 
                       <div className="flex items-center bg-secondary/50 rounded-lg">

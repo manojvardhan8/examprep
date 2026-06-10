@@ -105,7 +105,7 @@ export class SubjectService {
     // CASCADE DELETE: Import necessary models
     const Topic = (await import('@/models/Topic.ts')).default;
     const ContentBlock = (await import('@/models/ContentBlock.ts')).default;
-    const Anki = (await import('@/models/Anki.ts')).default;
+    const Anki = (await import('@/models/SpacedRepetition.ts')).default;
 
     // Find all topics in this subject
     const topics = await Topic.find({ subjectId: subjectId });

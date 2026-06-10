@@ -12,7 +12,7 @@ interface TestState {
   fetchTest: (id: string) => Promise<void>;
   // For createTest, we might pass config or topic selections
   createTest: (payload: Record<string, unknown>) => Promise<Test>; 
-  submitTest: (id: string, payload: { answers: Record<string, unknown>; warnings: unknown[]; timeSpent: Record<string, number> }) => Promise<void>;
+  submitTest: (id: string, payload: { answers: Record<string, unknown>; warnings: unknown[]; timeSpent: Record<string, number>; recognition?: Record<string, boolean> }) => Promise<void>;
   saveProgress: (id: string, payload: { answers: Record<string, unknown>; warnings: unknown[]; timeSpent: Record<string, number> }) => Promise<void>;
   checkAvailability: (topicIds: string[]) => Promise<Record<string, number>>;
   setTest: (test: Test | null) => void;

@@ -15,6 +15,8 @@ interface QuestionAreaProps {
     isReview?: boolean;
     timeSpent?: number;
     isAnswerCorrect?: boolean;
+    recognized?: boolean;
+    onRecognitionChange?: (value: boolean) => void;
 }
 
 export function QuestionArea({
@@ -28,7 +30,9 @@ export function QuestionArea({
     isLastQuestion = false,
     isReview = false,
     timeSpent = 0,
-    isAnswerCorrect
+    isAnswerCorrect,
+    recognized,
+    onRecognitionChange
 }: QuestionAreaProps & { isAnswerCorrect?: boolean }) {
     if (!questionBlock) return <div className="p-8 text-center text-muted-foreground">Question not found</div>;
 
@@ -146,6 +150,27 @@ export function QuestionArea({
                                 <Trash2 className="w-4 h-4" />
                                 <span className="hidden sm:inline">Clear Response</span>
                             </Button>
+                        </div>
+
+                        {/* Self-report: did you recall this? Feeds spaced repetition. */}
+                        <div className="hidden md:flex flex-col items-center gap-1">
+                            <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Did you recall it?</span>
+                            <div className="flex rounded-lg border border-border overflow-hidden">
+                                <button
+                                    type="button"
+                                    onClick={() => onRecognitionChange?.(true)}
+                                    className={`px-3 py-1.5 text-sm font-medium transition-colors ${recognized === true ? 'bg-success text-white' : 'bg-card text-muted-foreground hover:bg-success/10'}`}
+                                >
+                                    Recognized
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => onRecognitionChange?.(false)}
+                                    className={`px-3 py-1.5 text-sm font-medium border-l border-border transition-colors ${recognized === false ? 'bg-destructive text-white' : 'bg-card text-muted-foreground hover:bg-destructive/10'}`}
+                                >
+                                    Not Recognized
+                                </button>
+                            </div>
                         </div>
 
                         {/* Save / Next Actions */}

@@ -9,20 +9,28 @@ import type { FSRSParameters } from 'ts-fsrs';
 import { generatorParameters } from 'ts-fsrs';
 
 /**
- * Default FSRS Parameters
- * 
- * Configuration based on official FSRS recommendations:
- * - request_retention: 0.9 (90% retention rate - good balance of retention/workload)
+ * Target retention rate (probability a card is recalled when it comes due).
+ * 0.9 is the FSRS-recommended default; override with FSRS_REQUEST_RETENTION.
+ * Lower = longer intervals/less workload; higher = shorter intervals/more reviews.
+ */
+export const DEFAULT_REQUEST_RETENTION =
+  Number(process.env.FSRS_REQUEST_RETENTION) || 0.9;
+
+/**
+ * Default FSRS Parameters.
+ *
+ * Single global scheduling config (no per-deck presets):
+ * - request_retention: DEFAULT_REQUEST_RETENTION (env-overridable, default 0.9)
  * - maximum_interval: 36500 days (100 years)
- * - enable_fuzz: true (adds randomization to prevent pattern formation)
- * - enable_short_term: true (uses standard FSRS short-term handling)
+ * - enable_fuzz: true (randomizes intervals to prevent review pile-ups)
+ * - enable_short_term: true (standard FSRS short-term/learning-step handling)
  */
 export function getFSRSParams(): FSRSParameters {
   const params = generatorParameters({
-    request_retention: 0.85,     // 85% target retention rate (Widened intervals)
+    request_retention: DEFAULT_REQUEST_RETENTION,
     maximum_interval: 36500,     // 100 years in days
     enable_fuzz: true,           // Enable interval randomization
-    enable_short_term: true,    // Use standard FSRS short-term handling
+    enable_short_term: true,     // Use standard FSRS short-term handling
   });
 
   // Explicitly set steps (minutes)

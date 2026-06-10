@@ -22,6 +22,8 @@ export default function TestScreen() {
     // Local state
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [answers, setAnswers] = useState<Record<string, unknown>>({});
+    // Self-report: did the user recognize/recall this question? Feeds spaced repetition.
+    const [recognition, setRecognition] = useState<Record<string, boolean>>({});
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [timeLeft, setTimeLeft] = useState<number | null>(null);
     const [isReviewMode, setIsReviewMode] = useState(false);
@@ -124,7 +126,7 @@ export default function TestScreen() {
                 answers,
                 warnings: finalWarnings,
                 timeSpent: finalTimeSpent,
-                // cognitiveRatings removed
+                recognition,
             });
             // setShowTestCompleted(true);
         } catch (error: any) {
@@ -132,7 +134,7 @@ export default function TestScreen() {
             PromptService.alert('Submission Failed', `Error: ${error.message || 'Unknown error'}`);
             setSubmitting(false); // Re-enable if failed
         }
-    }, [id, focusWarnings, answers, questionTimes, submitting, submitTest]);
+    }, [id, focusWarnings, answers, questionTimes, recognition, submitting, submitTest]);
 
     const handlePause = useCallback(async () => {
         if (submitting || !id) return;
@@ -273,6 +275,11 @@ export default function TestScreen() {
         setAnswers(prev => ({ ...prev, [blockId]: value }));
     };
 
+    const handleRecognitionChange = (blockId: string, value: boolean) => {
+        if (isReviewMode) return;
+        setRecognition(prev => ({ ...prev, [blockId]: value }));
+    };
+
     const handleClearResponse = () => {
         if (isReviewMode) return;
         const currentQuestion = test?.questions[currentQuestionIndex];
@@ -365,8 +372,8 @@ export default function TestScreen() {
                     isReview={isReviewMode}
                     timeSpent={questionTimes[currentQuestion.blockId] || 0}
                     isAnswerCorrect={currentQuestion.isCorrect}
-                    // onCognitiveRating removed
-                    // isPending removed
+                    recognized={recognition[currentBlock._id]}
+                    onRecognitionChange={(val) => handleRecognitionChange(currentBlock._id, val)}
                 />
 
                 <TestSidebar

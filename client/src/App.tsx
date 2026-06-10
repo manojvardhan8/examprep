@@ -13,8 +13,7 @@ import { AuthSuccess } from '@/pages/AuthSuccess';
 import TestDashboard from '@/pages/TestDashboard';
 import Dashboard from '@/pages/Dashboard';
 import TestScreen from '@/pages/TestScreen';
-import AnkiBoard from '@/pages/AnkiBoard';
-import FSRSPresetSettings from '@/pages/settings/FSRSPresetSettings';
+import SpacedRepetitionBoard from '@/pages/SpacedRepetitionBoard';
 import AdminPage from '@/pages/AdminPage';
 import PendingApprovalPage from '@/pages/PendingApprovalPage';
 import { Navbar } from '@/components/common/Navbar';
@@ -116,14 +115,9 @@ const AppContent = () => {
             <TestScreen />
           </RequireAuth>
         } />
-        <Route path="/recall/:type/:id" element={
+        <Route path="/spaced-repetition/:type/:id" element={
           <RequireAuth>
-            <AnkiBoard />
-          </RequireAuth>
-        } />
-        <Route path="/settings/presets" element={
-          <RequireAuth>
-            <FSRSPresetSettings />
+            <SpacedRepetitionBoard />
           </RequireAuth>
         } />
         <Route path="/admin" element={

@@ -75,11 +75,16 @@ export class BulkUploadValidator {
         const hintRaw = row[8] != null ? String(row[8]).split(',').map(t => t.trim()).filter(Boolean) : [];
         const tags = row[9] ? String(row[9]).split(',').map(t => t.trim()).filter(Boolean) : [];
         const content = row[10] != null ? String(row[10]).trim() : '';
+        const imageUrl = row[11] != null ? String(row[11]).trim() : '';
 
         const block: any = { kind, tags, topicId };
 
         if (hintRaw.length > 0) {
             block.hints = hintRaw;
+        }
+
+        if (imageUrl) {
+            block.imageUrl = imageUrl;
         }
 
         if (kind === 'note') {

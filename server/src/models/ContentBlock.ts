@@ -20,6 +20,7 @@ export interface IContentBlock extends Document {
   blankAnswers?: string[];
   hints?: string[];
   options?: Array<{ id: string; text: string; isCorrect: boolean }>; // For mcqs
+  imageUrl?: string; // Optional question image (external URL)
   createdAt: Date;
   updatedAt: Date;
 }
@@ -47,6 +48,7 @@ const ContentBlockSchema: Schema = new Schema({
     text: String,
     isCorrect: Boolean
   }],
+  imageUrl: { type: String }, // Optional question image (external URL)
 }, { timestamps: true });
 
 ContentBlockSchema.index({ topicId: 1 });

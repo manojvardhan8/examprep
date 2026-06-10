@@ -47,6 +47,7 @@ export interface BaseContentBlock extends BaseEntity {
   tags?: string[];
   group?: string;
   hints?: string[];
+  imageUrl?: string;
 }
 
 export interface NoteBlock extends BaseContentBlock {

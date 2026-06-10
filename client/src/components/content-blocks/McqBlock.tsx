@@ -6,6 +6,7 @@ import { Button } from '@/components/common/Button';
 import { cn } from '@/lib/utils';
 import { CheckSquare, Square, CheckCircle2, XCircle, RotateCcw, Eye, Send } from 'lucide-react';
 import { LatexText } from '@/components/common/LatexText';
+import { QuestionImage } from '@/components/common/QuestionImage';
 
 interface McqBlockProps {
     block: SingleSelectMcqBlock | MultiSelectMcqBlock;
@@ -93,6 +94,8 @@ export function McqBlock({ block, isTest = false, value, onChange, onSubmit, com
                 )}
                 <span className="flex-1"><LatexText text={block.question || ''} /></span>
             </h3>
+
+            <QuestionImage url={block.imageUrl} />
 
             <div className="space-y-2">
                 {block.options.map((option) => {

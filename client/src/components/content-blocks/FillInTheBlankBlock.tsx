@@ -6,6 +6,7 @@ import { Card } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
 import { BlockFooter } from '@/components/content-blocks/BlockFooter';
 import { LatexText } from '@/components/common/LatexText';
+import { QuestionImage } from '@/components/common/QuestionImage';
 
 interface FillInTheBlankBlockProps {
     block: FillInTheBlankBlock;
@@ -159,6 +160,7 @@ export function FillInTheBlankBlock({
 
     return (
         <Card className={cn("transition-shadow", isTest ? "shadow-none border-0 p-0" : "hover:shadow-md")}>
+            <QuestionImage url={block.imageUrl} />
             <div className="text-lg leading-loose">
                 {parts.map((part, index) => (
                     <span key={index}>

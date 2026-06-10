@@ -24,12 +24,12 @@ export function BulkUploadModal({ isOpen, onClose, onUpload, topicId }: BulkUplo
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDownloadTemplate = () => {
-    const headers = ['Type', 'Question', 'Option 1', 'Option 2', 'Option 3', 'Option 4', 'Correct Answer', 'Explanation', 'Hint', 'Tags', 'Note Content'];
+    const headers = ['Type', 'Question', 'Option 1', 'Option 2', 'Option 3', 'Option 4', 'Correct Answer', 'Explanation', 'Hint', 'Tags', 'Note Content', 'Image URL'];
     const data = [
-      ['single_select_mcq', 'What is the capital of France?', 'London', 'Berlin', 'Paris', 'Madrid', '3', 'It is Paris.', 'Look at the map.', 'geography, europe', ''],
-      ['multi_select_mcq', 'Select prime numbers', '2', '4', '5', '9', '1, 3', '2 and 5 are prime.', 'They have only 2 factors.', 'math, numbers', ''],
-      ['fill_in_the_blank', 'The sun rises in the {{blank}}.', '', '', '', '', 'east', 'Direction', 'Opposite of west, Solar system fact', 'science', ''],
-      ['note', '', '', '', '', '', '', '', '', 'study-tip', '# Key Concept\nRemember this.'],
+      ['single_select_mcq', 'What is the capital of France?', 'London', 'Berlin', 'Paris', 'Madrid', '3', 'It is Paris.', 'Look at the map.', 'geography, europe', '', 'https://example.com/map.png'],
+      ['multi_select_mcq', 'Select prime numbers', '2', '4', '5', '9', '1, 3', '2 and 5 are prime.', 'They have only 2 factors.', 'math, numbers', '', ''],
+      ['fill_in_the_blank', 'The sun rises in the {{blank}}.', '', '', '', '', 'east', 'Direction', 'Opposite of west, Solar system fact', 'science', '', ''],
+      ['note', '', '', '', '', '', '', '', '', 'study-tip', '# Key Concept\nRemember this.', ''],
     ];
 
     const wb = XLSX.utils.book_new();

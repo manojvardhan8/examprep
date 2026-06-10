@@ -107,7 +107,7 @@ export class ContentService {
     const limit = options.limit || 20;
 
     // Fetch one extra to know if there is a next page
-    const blocks = await ContentBlock.find(query, '_id topicId kind content question answer explanation notes tags group options blankAnswers hints data position updatedAt')
+    const blocks = await ContentBlock.find(query, '_id topicId kind content question answer explanation notes tags group options blankAnswers hints data position updatedAt imageUrl')
       .sort({ position: 1, _id: 1 })
       .limit(limit + 1);
 

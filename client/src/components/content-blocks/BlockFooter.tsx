@@ -68,7 +68,18 @@ export function BlockFooter({
                {explanation && (
                  <div className="text-sm bg-accent/20 p-3 rounded-md border border-accent/30 whitespace-pre-wrap">
                    <span className="font-semibold text-accent-foreground block mb-1">Explanation:</span>
-                   <LatexText text={explanation} />
+                   {/^https?:\/\/\S+$/.test(explanation.trim()) ? (
+                     <a
+                       href={explanation.trim()}
+                       target="_blank"
+                       rel="noreferrer"
+                       className="text-primary underline break-all hover:text-primary/80"
+                     >
+                       View detailed solution
+                     </a>
+                   ) : (
+                     <LatexText text={explanation} />
+                   )}
                  </div>
                )}
                

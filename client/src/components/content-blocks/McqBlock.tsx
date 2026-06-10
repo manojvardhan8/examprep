@@ -86,13 +86,13 @@ export function McqBlock({ block, isTest = false, value, onChange, onSubmit, com
 
     return (
         <Card className={cn("transition-shadow", isTest ? "shadow-none border-0 p-0" : "hover:shadow-md")}>
-            <h3 className="text-lg font-medium mb-4 text-foreground flex items-center">
+            <h3 className="text-lg font-medium mb-4 text-foreground flex items-start">
                 {isMulti && (
                     <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground bg-secondary px-2 py-1 rounded-sm mr-2 align-middle border border-border shrink-0">
                         Multi-Select
                     </span>
                 )}
-                <span className="flex-1"><LatexText text={block.question || ''} /></span>
+                <span className="flex-1 whitespace-pre-wrap"><LatexText text={block.question || ''} /></span>
             </h3>
 
             <QuestionImage url={block.imageUrl} />

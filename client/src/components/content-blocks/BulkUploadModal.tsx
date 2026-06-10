@@ -7,6 +7,7 @@ import { type ContentBlock } from '@/types/domain';
 import { PromptService } from '@/services/PromptService';
 import { BulkUploadValidator, type ValidationError } from '@/services/BulkUploadValidator';
 import { LatexText } from '@/components/common/LatexText';
+import { cn } from '@/lib/utils';
 
 interface BulkUploadModalProps {
   isOpen: boolean;
@@ -194,19 +195,46 @@ export function BulkUploadModal({ isOpen, onClose, onUpload, topicId }: BulkUplo
                     <thead className="bg-muted/20 text-muted-foreground">
                       <tr className="text-left">
                         <th className="p-2 font-medium">Type</th>
-                        <th className="p-2 font-medium">Question/Content</th>
-                        <th className="p-2 font-medium">Details</th>
+                        <th className="p-2 font-medium">Question / Answer</th>
+                        <th className="p-2 font-medium w-20">Image</th>
+                        <th className="p-2 font-medium">Tags</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
                        {parsedBlocks.map((block: any, idx) => (
-                         <tr key={idx} className="hover:bg-muted/10">
-                           <td className="p-2 align-top font-mono text-muted-foreground uppercase text-[10px]">{block.kind === 'single_select_mcq' ? 'MCQ' : block.kind}</td>
-                           <td className="p-2 align-top">
-                              <p className="font-medium line-clamp-1"><LatexText text={block.question || block.content} /></p>
+                         <tr key={idx} className="hover:bg-muted/10 align-top">
+                           <td className="p-2 font-mono text-muted-foreground uppercase text-[10px] whitespace-nowrap">{block.kind === 'single_select_mcq' ? 'MCQ' : block.kind}</td>
+                           <td className="p-2">
+                              <p className="font-medium line-clamp-2 mb-1"><LatexText text={block.question || block.content} /></p>
+                              {block.options && (
+                                <div className="space-y-0.5">
+                                  {block.options.map((opt: any) => (
+                                    <div key={opt.id} className={cn("flex items-start gap-1", opt.isCorrect ? "text-success font-medium" : "text-muted-foreground")}>
+                                      <span className="shrink-0">{opt.isCorrect ? '✓' : '·'}</span>
+                                      <span className="line-clamp-1"><LatexText text={opt.text} /></span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                              {block.blankAnswers && (
+                                <div className="text-success font-medium">Answer: {block.blankAnswers.join(', ')}</div>
+                              )}
                            </td>
-                           <td className="p-2 align-top text-muted-foreground">
-                              {block.options ? `${block.options.length} options` : block.blankAnswers ? `${block.blankAnswers.length} blanks` : '-'}
+                           <td className="p-2">
+                              {block.imageUrl ? (
+                                <img src={String(block.imageUrl).split(/\s+/)[0]} alt="" referrerPolicy="no-referrer" className="max-h-12 rounded border border-border" />
+                              ) : (
+                                <span className="text-muted-foreground/40">-</span>
+                              )}
+                           </td>
+                           <td className="p-2 text-muted-foreground">
+                              {block.tags && block.tags.length > 0 ? (
+                                <div className="flex flex-wrap gap-1">
+                                  {block.tags.map((t: string, i: number) => (
+                                    <span key={i} className="px-1.5 py-0.5 rounded bg-muted text-[10px]">{t}</span>
+                                  ))}
+                                </div>
+                              ) : '-'}
                            </td>
                          </tr>
                        ))}

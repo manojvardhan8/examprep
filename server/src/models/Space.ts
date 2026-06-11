@@ -11,7 +11,6 @@ export interface ISpace extends Document {
   userId: mongoose.Types.ObjectId;
   icon: string;
   subjectCount: number;
-  fsrsPresetId?: mongoose.Types.ObjectId;  // Optional FSRS preset override
   createdAt: Date;
   updatedAt: Date;
 }
@@ -23,8 +22,7 @@ const SpaceSchema = new Schema<ISpace>(
     slug: { type: String, required: true },
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
     icon: { type: String, default: "Book" },
-    subjectCount: { type: Number, default: 0 },
-    fsrsPresetId: { type: Schema.Types.ObjectId, ref: "FSRSPreset" }
+    subjectCount: { type: Number, default: 0 }
   },
   { timestamps: true }
 );

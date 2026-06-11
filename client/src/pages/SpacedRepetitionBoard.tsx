@@ -1,18 +1,18 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAnkiSession } from '@/hooks/useAnkiSession';
+import { useSpacedRepetitionSession } from '@/hooks/useSpacedRepetitionSession';
 import { Button } from '@/components/common/Button';
 import { Loader2 } from 'lucide-react';
-import { AnkiCardView } from '@/components/anki/AnkiCardView';
+import { SpacedRepetitionCardView } from '@/components/spaced-repetition/SpacedRepetitionCardView';
 
-export default function AnkiBoard() {
-    const { type, id } = useParams(); // type: 'subject' | 'topic', id: slug or ID
+export default function SpacedRepetitionBoard() {
+    const { type, id } = useParams(); // type: 'subject' | 'topic'
 
     const context = {
         topicId: type === 'topic' ? id : undefined,
         subjectId: type === 'subject' ? id : undefined
     };
 
-    const { currentItem, queueLength, isLoading, isFinished, handleRating, refresh, stats } = useAnkiSession(context);
+    const { currentItem, queueLength, isLoading, isFinished, handleRating, refresh, stats } = useSpacedRepetitionSession(context);
     const navigate = useNavigate();
 
     if (isLoading) {
@@ -27,8 +27,8 @@ export default function AnkiBoard() {
     if (isFinished) {
         return (
             <div className="flex h-screen flex-col items-center justify-center bg-gray-900 text-white p-4">
-                <h1 className="text-3xl font-bold mb-4">You have finished this recall session!</h1>
-                <p className="text-gray-400 mb-8">Great job keeping up with your revisions.</p>
+                <h1 className="text-3xl font-bold mb-4">You've finished this review session!</h1>
+                <p className="text-gray-400 mb-8">Great job keeping up with your spaced repetition.</p>
                 <div className="flex gap-4">
                     <Button onClick={refresh}>Start Another Session</Button>
                     <Button variant="secondary" onClick={() => navigate(-1)}>Back to Library</Button>
@@ -50,7 +50,7 @@ export default function AnkiBoard() {
     }
 
     return (
-        <AnkiCardView
+        <SpacedRepetitionCardView
             key={`${currentItem.questionId._id}-${stats.reviewedCount}`}
             currentItem={currentItem}
             questionsLeft={queueLength}

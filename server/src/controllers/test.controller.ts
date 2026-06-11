@@ -27,6 +27,16 @@ export const getAvailableQuestionCounts = async (req: Request, res: Response) =>
   }
 };
 
+export const getAvailableTags = async (req: Request, res: Response) => {
+  try {
+    // Accepts the same scope body as createTest ({ selections } or { topicIds }).
+    const tags = await TestService.getAvailableTags(req.body || {});
+    res.json(tags);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 export const createTest = async (req: Request, res: Response) => {
   try {
     const userId = (req.user as any)._id; // Assumes auth middleware populates req.user
@@ -77,13 +87,13 @@ export const getTestById = async (req: Request, res: Response) => {
 export const submitTest = async (req: Request, res: Response) => {
   try {
     const userId = (req.user as any)._id;
-    const { answers, warnings, timeSpent } = req.body;
+    const { answers, warnings, timeSpent, recognition } = req.body;
 
     const id = req.params.id;
     if (!id) {
       return res.status(400).json({ message: 'Test ID is required' });
     }
-    const test = await TestService.submitTest(id, userId, answers, warnings, timeSpent);
+    const test = await TestService.submitTest(id, userId, answers, warnings, timeSpent, recognition);
     res.json(test);
   } catch (error: any) {
     res.status(500).json({ message: error.message });

@@ -12,7 +12,6 @@ export interface ISubject extends Document {
   topicCount: number;
   questionCount: number;
   icon: string;
-  fsrsPresetId?: mongoose.Types.ObjectId;  // Optional FSRS preset override
   createdAt: Date;
   updatedAt: Date;
 }
@@ -24,8 +23,7 @@ const SubjectSchema: Schema = new Schema({
   position: { type: Number, default: 0 },
   topicCount: { type: Number, default: 0 },
   questionCount: { type: Number, default: 0 },
-  icon: { type: String, default: 'Book' },
-  fsrsPresetId: { type: Schema.Types.ObjectId, ref: 'FSRSPreset' }
+  icon: { type: String, default: 'Book' }
 }, { timestamps: true });
 
 SubjectSchema.pre("validate", async function () {

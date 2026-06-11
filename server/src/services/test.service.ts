@@ -7,8 +7,8 @@ import type { IContentBlock } from '@/models/ContentBlock.js';
 import { ContentBlockType } from '@/models/ContentBlock.js';
 import Subject from '@/models/Subject.js';
 import Topic from '@/models/Topic.js';
-import SpacedRepetition from '@/models/Anki.js';
-import AnkiService from '@/services/anki.service.js';
+import SpacedRepetition from '@/models/SpacedRepetition.js';
+import { SpacedRepetitionService } from '@/services/spaced-repetition.service.js';
 
 export class TestService {
   /**
@@ -35,8 +35,69 @@ export class TestService {
   /**
    * Create a new test with random questions based on config
    */
+  /**
+   * Resolve a test config's scope (legacy flat topicIds OR hierarchical
+   * space/subject/topic selections) into a flat list of topic ObjectIds.
+   */
+  private async resolveTopicIds(config: any): Promise<mongoose.Types.ObjectId[]> {
+    const { selections } = config;
+
+    // Branch 1: Legacy flat topicIds (backward compatibility)
+    if (config.topicIds && config.topicIds.length > 0) {
+      return config.topicIds.map((id: any) => new mongoose.Types.ObjectId(id));
+    }
+
+    // Branch 2: Hierarchical selections
+    if (selections && Array.isArray(selections)) {
+      const resolvedIds = new Set<string>();
+      for (const sel of selections) {
+        const { spaceId, subjects } = sel;
+        if (!subjects || subjects.length === 0) {
+          // Implicit: all subjects in space → all their topics
+          const spaceSubjects = await Subject.find({ spaceId }).select('_id');
+          const spaceSubjectIds = spaceSubjects.map(s => s._id);
+          const spaceTopics = await Topic.find({ subjectId: { $in: spaceSubjectIds } }).select('_id');
+          spaceTopics.forEach(t => resolvedIds.add(t._id.toString()));
+        } else {
+          for (const subSel of subjects) {
+            const { subjectId, topics } = subSel;
+            if (!topics || topics.length === 0) {
+              const currentSubjectTopics = await Topic.find({ subjectId }).select('_id');
+              currentSubjectTopics.forEach(t => resolvedIds.add(t._id.toString()));
+            } else {
+              topics.forEach((tid: string) => resolvedIds.add(tid));
+            }
+          }
+        }
+      }
+      return Array.from(resolvedIds).map(id => new mongoose.Types.ObjectId(id));
+    }
+
+    return [];
+  }
+
+  /**
+   * Distinct tags present on questions within a test config's scope.
+   * Used to populate the tag filter in the test-creation wizard.
+   */
+  async getAvailableTags(config: any): Promise<string[]> {
+    const topicObjectIds = await this.resolveTopicIds(config);
+    if (topicObjectIds.length === 0) return [];
+
+    const questionTypes = config.questionTypes && config.questionTypes.length > 0
+      ? config.questionTypes
+      : [ContentBlockType.SINGLE_SELECT_MCQ, ContentBlockType.MULTI_SELECT_MCQ, ContentBlockType.FILL_IN_THE_BLANK];
+
+    const tags: string[] = await ContentBlock.distinct('tags', {
+      topicId: { $in: topicObjectIds },
+      kind: { $in: questionTypes }
+    });
+
+    return tags.filter(Boolean).sort((a, b) => a.localeCompare(b));
+  }
+
   async createTest(userId: string, config: ITestConfig): Promise<ITest> {
-    const { selections, questionTypes, questionCount, onlyDue } = config as any; // Cast as any to access new selections prop if not in ITestConfig yet
+    const { questionTypes, questionCount, onlyDue, tags } = config as any; // Cast as any to access new props not yet in ITestConfig
 
     // Defaults for optional config values
     const effectiveQuestionTypes = questionTypes && questionTypes.length > 0
@@ -47,46 +108,10 @@ export class TestService {
     const effectiveNegativeMarks = config.negativeMarks || 0;
     const effectiveQuestionCount = questionCount || 10; // Default 10 questions
 
-    let topicObjectIds: mongoose.Types.ObjectId[] = [];
+    // Optional tag filter: include questions carrying ANY of these tags.
+    const selectedTags: string[] = Array.isArray(tags) ? tags.filter(Boolean) : [];
 
-    // Branch 1: Legacy flat topicIds (for backward compatibility if needed)
-    if (config.topicIds && config.topicIds.length > 0) {
-      topicObjectIds = config.topicIds.map((id: any) => new mongoose.Types.ObjectId(id));
-    }
-    // Branch 2: New Hierarchical Selections
-    else if (selections && Array.isArray(selections)) {
-      const resolvedIds = new Set<string>();
-
-      // We can run these in parallel, but sequential is safer for now to avoid complexity
-      for (const sel of selections) {
-        const { spaceId, subjects } = sel;
-
-        if (!subjects || subjects.length === 0) {
-          // Implicit All Subjects in Space
-          // Get all subjects in space
-          const spaceSubjects = await Subject.find({ spaceId: spaceId }).select('_id');
-          const spaceSubjectIds = spaceSubjects.map(s => s._id);
-          // Get all topics in these subjects
-          const spaceTopics = await Topic.find({ subjectId: { $in: spaceSubjectIds } }).select('_id');
-          spaceTopics.forEach(t => resolvedIds.add(t._id.toString()));
-        } else {
-          // Specific Subjects
-          for (const subSel of subjects) {
-            const { subjectId, topics } = subSel;
-            if (!topics || topics.length === 0) {
-              // Implicit All Topics in Subject
-              const currentSubjectTopics = await Topic.find({ subjectId: subjectId }).select('_id');
-              currentSubjectTopics.forEach(t => resolvedIds.add(t._id.toString()));
-            } else {
-              // Explicit Topics
-              topics.forEach((tid: string) => resolvedIds.add(tid));
-            }
-          }
-        }
-      }
-      topicObjectIds = Array.from(resolvedIds).map(id => new mongoose.Types.ObjectId(id));
-    }
-
+    const topicObjectIds = await this.resolveTopicIds(config);
     if (topicObjectIds.length === 0) {
       throw new Error('No topics selected');
     }
@@ -113,25 +138,27 @@ export class TestService {
         throw new Error('No pending questions due for review.');
       }
 
+      const match: any = {
+        _id: { $in: dueQuestionObjectIds },
+        topicId: { $in: topicObjectIds },
+        kind: { $in: effectiveQuestionTypes }
+      };
+      if (selectedTags.length > 0) match.tags = { $in: selectedTags };
+
       pipeline = [
-        {
-          $match: {
-            _id: { $in: dueQuestionObjectIds },
-            topicId: { $in: topicObjectIds },
-            kind: { $in: effectiveQuestionTypes }
-          }
-        },
+        { $match: match },
         { $sample: { size: effectiveQuestionCount } }
       ];
     } else {
       // All questions mode
+      const match: any = {
+        topicId: { $in: topicObjectIds },
+        kind: { $in: effectiveQuestionTypes }
+      };
+      if (selectedTags.length > 0) match.tags = { $in: selectedTags };
+
       pipeline = [
-        {
-          $match: {
-            topicId: { $in: topicObjectIds },
-            kind: { $in: effectiveQuestionTypes }
-          }
-        },
+        { $match: match },
         { $sample: { size: effectiveQuestionCount } }
       ];
     }
@@ -190,7 +217,7 @@ export class TestService {
   /**
    * Submit test and calculate score
    */
-  async submitTest(testId: string, userId: string, answers: Record<string, any>, warnings: any[], timeSpent?: Record<string, number>): Promise<ITest> {
+  async submitTest(testId: string, userId: string, answers: Record<string, any>, warnings: any[], timeSpent?: Record<string, number>, recognition: Record<string, boolean> = {}): Promise<ITest> {
     const test = await Test.findOne({ _id: testId, userId });
     if (!test) throw new Error('Test not found');
 
@@ -202,8 +229,10 @@ export class TestService {
     const positiveMarks = test.config.marksPerQuestion || 1;
     const negativeMarks = test.config.negativeMarks || 0;
 
-    // Process answers
-    const ankiUpdates: Promise<any>[] = [];
+    // Process answers. Collect spaced-repetition ratings keyed by question so a
+    // duplicate question can't trigger two concurrent upserts on the same card.
+    const reviewedAt = new Date();
+    const ratingByQuestion = new Map<string, 'Again' | 'Hard' | 'Good' | 'Easy'>();
 
     for (const q of test.questions) {
       const qId = q.blockId.toString();
@@ -275,22 +304,26 @@ export class TestService {
         }
       }
 
-      // --- Cognitive Grading / Anki Update ---
-      // Standard Logic (No self-report)
-      // Correct=Good, Wrong=Again
-
-      let rating: 'Again' | 'Hard' | 'Good' | 'Easy' | null = null;
-      if (isCorrect) rating = 'Good';
-      else rating = 'Again';
-
-      // Queue the update if we have a rating
-      if (rating) {
-        ankiUpdates.push(AnkiService.processReview(userId, qId, rating));
+      // --- Spaced-repetition update (same FSRS engine as the review board) ---
+      // Self-report "recognized" (did the user recall it?) combines with the
+      // auto-grade to pick one of the four FSRS ratings. Recognition is optional;
+      // an unmarked question is treated as "not recognized" (conservative).
+      const recognized = recognition[qId] === true;
+      let rating: 'Again' | 'Hard' | 'Good' | 'Easy';
+      if (isCorrect) {
+        rating = recognized ? 'Easy' : 'Good';
+      } else {
+        rating = recognized ? 'Hard' : 'Again';
       }
+      ratingByQuestion.set(qId, rating); // last write per question wins
     } // End loop
 
-    // Wait for all Anki updates
-    await Promise.all(ankiUpdates);
+    // Feed every graded question into the spaced-repetition scheduler.
+    await Promise.all(
+      [...ratingByQuestion].map(([qId, rating]) =>
+        SpacedRepetitionService.reviewCard(userId, qId, rating, reviewedAt)
+      )
+    );
 
     test.score = score;
     test.status = TestStatus.COMPLETED;

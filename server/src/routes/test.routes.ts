@@ -7,6 +7,7 @@ const router: express.Router = express.Router();
 router.use(protect); // All test routes need authentication
 
 router.post('/count', testController.getAvailableQuestionCounts); // Using POST to send filter body easily
+router.post('/available-tags', testController.getAvailableTags); // Distinct tags within a selection scope
 router.post('/', testController.createTest);
 router.get('/', testController.getTests);
 router.get('/:id', testController.getTestById);

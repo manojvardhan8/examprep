@@ -13,7 +13,7 @@ import authRoutes from '@/routes/auth.routes.ts';
 import contentRoutes from '@/routes/content.routes.ts';
 import aiRoutes from '@/routes/ai.routes.ts';
 import dashboardRoutes from '@/routes/dashboard.routes.ts';
-import ankiRoutes from '@/routes/anki.routes.ts';
+import spacedRepetitionRoutes from '@/routes/spaced-repetition.routes.ts';
 import adminRoutes from '@/routes/admin.routes.ts';
 import { ENV } from '@/config/env.ts';
 
@@ -39,7 +39,7 @@ app.use('/api', contentRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/tests', testRoutes);
 app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/anki', ankiRoutes);
+app.use('/api/spaced-repetition', spacedRepetitionRoutes);
 app.use('/api/admin', adminRoutes);
 
 // Error Handling

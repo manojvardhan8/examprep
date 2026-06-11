@@ -7,6 +7,7 @@ import { useTestStore } from '@/store/testStore';
 import { PromptService } from '@/services/PromptService';
 import { Modal } from '@/components/common/Modal';
 import { Button } from '@/components/common/Button';
+import api from '@/lib/api';
 import type { Subject, Topic } from '@/types/domain';
 
 interface TestCreationWizardProps {
@@ -33,7 +34,7 @@ export function TestCreationWizard({ isOpen, onClose }: TestCreationWizardProps)
     const { getSubjects, getTopics } = useContentStore();
 
     // Wizard Step State
-    const [step, setStep] = useState<'selection' | 'config'>('selection');
+    const [step, setStep] = useState<'selection' | 'tags' | 'config'>('selection');
     const [config, setConfig] = useState({
         questionCount: 15,
         duration: 60, // minutes
@@ -56,6 +57,11 @@ export function TestCreationWizard({ isOpen, onClose }: TestCreationWizardProps)
 
     const [searchTerm, setSearchTerm] = useState('');
 
+    // Optional tag filter (populated when entering the config step)
+    const [availableTags, setAvailableTags] = useState<string[]>([]);
+    const [selectedTags, setSelectedTags] = useState<string[]>([]);
+    const [isLoadingTags, setIsLoadingTags] = useState(false);
+
     useEffect(() => {
         if (isOpen) {
             fetchSpaces();
@@ -66,13 +72,15 @@ export function TestCreationWizard({ isOpen, onClose }: TestCreationWizardProps)
             setTopicLayer(null);
             setSearchTerm('');
             setStep('selection');
+            setAvailableTags([]);
+            setSelectedTags([]);
         }
     }, [isOpen, fetchSpaces]);
 
-    // Clear search when changing layers
+    // Clear search when changing layers or steps (the search box is shared)
     useEffect(() => {
         setSearchTerm('');
-    }, [subjectLayer, topicLayer]);
+    }, [subjectLayer, topicLayer, step]);
 
     // --- Helpers ---
 
@@ -306,35 +314,52 @@ export function TestCreationWizard({ isOpen, onClose }: TestCreationWizardProps)
     const { createTest } = useTestStore();
     const [isCreating, setIsCreating] = useState(false);
 
-    const handleNext = () => {
-        setStep('config');
+    // Build the hierarchical selections payload from the current tree.
+    const buildSelections = () => Object.entries(tree).map(([spaceId, spaceVal]) => {
+        const entry: Record<string, any> = { spaceId };
+        if (!spaceVal.allSubjects) {
+            entry.subjects = Object.entries(spaceVal.subjects).map(([subId, subVal]) => {
+                const subEntry: Record<string, any> = { subjectId: subId };
+                if (!subVal.allTopics) {
+                    subEntry.topics = subVal.topics;
+                }
+                return subEntry;
+            });
+        }
+        return entry;
+    });
+
+    // selection → tags: load the tags available within the chosen scope.
+    const handleNext = async () => {
+        setStep('tags');
+        setIsLoadingTags(true);
+        setSelectedTags([]);
+        try {
+            const res = await api.post<string[]>('/tests/available-tags', { selections: buildSelections() });
+            setAvailableTags(Array.isArray(res.data) ? res.data : []);
+        } catch (err) {
+            console.error('Failed to load tags', err);
+            setAvailableTags([]);
+        } finally {
+            setIsLoadingTags(false);
+        }
+    };
+
+    const toggleTag = (tag: string) => {
+        setSelectedTags(prev => prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]);
     };
 
     const handleCreate = async () => {
-        const payload = Object.entries(tree).map(([spaceId, spaceVal]) => {
-            const entry: Record<string, any> = { spaceId };
-
-            if (!spaceVal.allSubjects) {
-                entry.subjects = Object.entries(spaceVal.subjects).map(([subId, subVal]) => {
-                    const subEntry: Record<string, any> = { subjectId: subId };
-                    if (!subVal.allTopics) {
-                        subEntry.topics = subVal.topics;
-                    }
-                    return subEntry;
-                });
-            }
-            return entry;
-        });
-
         setIsCreating(true);
         try {
             const newTest = await createTest({
-                selections: payload,
+                selections: buildSelections(),
                 questionCount: config.questionCount,
                 duration: config.duration,
                 marksPerQuestion: config.marksPerQuestion,
                 negativeMarks: config.negativeMarks,
-                questionTypes: ['single_select_mcq', 'multi_select_mcq', 'fill_in_the_blank']
+                questionTypes: ['single_select_mcq', 'multi_select_mcq', 'fill_in_the_blank'],
+                tags: selectedTags
             });
             onClose();
             navigate(`/tests/${newTest._id}`);
@@ -473,6 +498,47 @@ export function TestCreationWizard({ isOpen, onClose }: TestCreationWizardProps)
         );
     };
 
+    const renderTagsLayer = () => {
+        if (step !== 'tags') return null;
+
+        const tagItems = availableTags.map(t => ({ _id: t, name: t }));
+        const allSelected = availableTags.length > 0 && selectedTags.length === availableTags.length;
+
+        return (
+            <Modal
+                isOpen={isOpen}
+                onClose={onClose}
+                title="Create Test - Filter by Tags (Optional)"
+                footer={
+                    <div className="flex gap-2 justify-end w-full">
+                        <Button variant="secondary" onClick={() => setStep('selection')} disabled={isCreating}>Back</Button>
+                        <Button onClick={() => setStep('config')}>Next</Button>
+                    </div>
+                }
+            >
+                {isLoadingTags ? (
+                    <div className="flex justify-center p-8"><Loader2 className="animate-spin text-primary" /></div>
+                ) : (
+                    <>
+                        <p className="text-xs text-muted-foreground mb-2">
+                            Leave empty to include all questions. Selecting tags limits the test to questions with any of them.
+                        </p>
+                        {renderList(
+                            tagItems,
+                            'name',
+                            (id) => selectedTags.includes(id),
+                            (id) => toggleTag(id),
+                            undefined,
+                            allSelected,
+                            (sel) => setSelectedTags(sel ? [...availableTags] : []),
+                            "No tags found for the selected content."
+                        )}
+                    </>
+                )}
+            </Modal>
+        );
+    };
+
     const renderConfigLayer = () => {
         if (step !== 'config') return null;
 
@@ -483,7 +549,7 @@ export function TestCreationWizard({ isOpen, onClose }: TestCreationWizardProps)
                 title="Create Test - Configure"
                 footer={
                     <div className="flex gap-2 justify-end w-full">
-                        <Button variant="secondary" onClick={() => setStep('selection')} disabled={isCreating}>Back</Button>
+                        <Button variant="secondary" onClick={() => setStep('tags')} disabled={isCreating}>Back</Button>
                         <Button onClick={handleCreate} disabled={isCreating}>
                             {isCreating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                             Start Test
@@ -616,6 +682,7 @@ export function TestCreationWizard({ isOpen, onClose }: TestCreationWizardProps)
     return (
         <>
             {renderSpaceLayer()}
+            {renderTagsLayer()}
             {renderConfigLayer()}
             {renderSubjectLayer()}
             {renderTopicLayer()}

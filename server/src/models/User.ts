@@ -7,7 +7,6 @@ export interface IUser extends Omit<SharedUser, '_id'>, Document {
   jwtSecureCode: string;
   resetPasswordToken?: string;
   resetPasswordExpires?: Date;
-  defaultFSRSPresetId?: mongoose.Types.ObjectId;
   createdAt: Date;
 }
 
@@ -22,7 +21,6 @@ const UserSchema: Schema = new Schema({
   resetPasswordExpires: { type: Date },
   role: { type: String, enum: ['user', 'admin'], default: 'user' },
   isApproved: { type: Boolean, default: false },
-  defaultFSRSPresetId: { type: Schema.Types.ObjectId, ref: 'FSRSPreset' },
   createdAt: { type: Date, default: Date.now },
 });
 

@@ -262,10 +262,10 @@ export default function TopicList() {
                       className="h-8 px-4 rounded-full bg-green-500 hover:bg-green-600 text-white shadow-sm font-semibold border-none transition-all transform hover:scale-105 active:scale-95"
                       onClick={(e) => {
                         e.stopPropagation();
-                        navigate(`/recall/topic/${topic._id}`);
+                        navigate(`/spaced-repetition/topic/${topic._id}`);
                       }}
                     >
-                      RECALL
+                      Review
                     </Button>
 
                     <div className="flex items-center gap-1">

@@ -70,8 +70,14 @@ export class AuthController {
 
   static async googleCallback(req: Request, res: Response): Promise<void> {
     const user = req.user as IUser;
-    const token = AuthService.generateToken(user);
     const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
+
+    if (!(user as any).isApproved) {
+      res.redirect(`${CLIENT_URL}/login?error=Account%20Pending%20Approval`);
+      return;
+    }
+
+    const token = AuthService.generateToken(user);
     res.redirect(`${CLIENT_URL}/auth-success?token=${token}`);
   }
   static async forgotPassword(req: Request, res: Response): Promise<void> {

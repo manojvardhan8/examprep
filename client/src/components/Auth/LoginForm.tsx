@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { Input } from '@/components/UI/Input';
 import { Button } from '@/components/UI/Button';
 import { useAuthStore } from '@/store/authStore';
@@ -12,6 +12,14 @@ export const LoginForm = () => {
   const [error, setError] = useState('');
   const setAuth = useAuthStore((state) => state.setAuth);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    const errorParam = searchParams.get('error');
+    if (errorParam) {
+      setError(errorParam);
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,9 +39,9 @@ export const LoginForm = () => {
     }
   };
 
-  // const handleGoogleLogin = () => {
-  //   window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
-  // };
+  const handleGoogleLogin = () => {
+    window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
+  };
 
   return (
     <div className="w-full max-w-md p-8 space-y-6 border border-border/40 rounded-xl bg-background/50 backdrop-blur-md shadow-xl">
@@ -74,7 +82,7 @@ export const LoginForm = () => {
           Sign In
         </Button>
       </form>
-      {/* <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4">
         <div className="flex-1 border-t border-border"></div>
         <span className="text-xs uppercase text-neutral-500">Or continue with</span>
         <div className="flex-1 border-t border-border"></div>
@@ -99,7 +107,7 @@ export const LoginForm = () => {
           />
         </svg>
         Google
-      </Button> */}
+      </Button>
       <p className="text-center text-sm text-neutral-500">
         Don't have an account?{' '}
         <Link to="/register" className="text-primary hover:underline font-medium">

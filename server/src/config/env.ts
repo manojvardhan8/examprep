@@ -10,4 +10,7 @@ export const ENV = {
   CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:5173',
   ADMIN_EMAILS: (process.env.ADMIN_EMAIL || 'ganeshknsml@gmail.com').split(',').map(email => email.trim()),
   NODE_ENV: process.env.NODE_ENV || 'development',
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+  API_URL: process.env.API_URL || `http://localhost:${process.env.PORT}/api`
 };

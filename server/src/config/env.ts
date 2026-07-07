@@ -12,5 +12,6 @@ export const ENV = {
   NODE_ENV: process.env.NODE_ENV || 'development',
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
-  API_URL: process.env.API_URL || `http://localhost:${process.env.PORT}/api`
+  API_URL: process.env.API_URL || `http://localhost:${process.env.PORT}/api`,
+  IS_LAMBDA: !!process.env.AWS_LAMBDA_FUNCTION_NAME,
 };

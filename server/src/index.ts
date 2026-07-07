@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
+import serverless from 'serverless-http';
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
@@ -57,10 +58,14 @@ mongoose
   .connect(MONGODB_URI)
   .then(() => {
     console.log('connected to MongoDB');
-    app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
-    });
+    if (!ENV.IS_LAMBDA) {
+      app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+      });
+    }
   })
   .catch((err) => {
     console.error('MongoDB connection error:', err);
   });
+
+export const handler = serverless(app);

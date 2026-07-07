@@ -9,13 +9,15 @@
     "seed": "tsx scripts/seed.ts",
     "seed-dashboard": "tsx scripts/seed-dashboard.ts",
     "backfill-slugs": "tsx scripts/backfill-slugs.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy": "npx serverless deploy --stage production"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.26.0",
   "devDependencies": {
+    "@types/aws-lambda": "^8.10.159",
     "@types/bcryptjs": "^3.0.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
@@ -31,6 +33,10 @@
     "@types/passport-local": "^1.0.38",
     "@types/uuid": "^11.0.0",
     "esbuild": "^0.27.2",
+    "serverless": "^3.40.0",
+    "serverless-dotenv-plugin": "^6.0.0",
+    "serverless-esbuild": "^1.57.0",
+    "serverless-offline": "^12.0.4",
     "ts-node-dev": "^2.0.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
@@ -57,6 +63,7 @@
     "passport-google-oauth20": "^2.0.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
+    "serverless-http": "^4.0.0",
     "slugify": "^1.6.6",
     "ts-fsrs": "^5.2.3",
     "uuid": "^13.0.0"
